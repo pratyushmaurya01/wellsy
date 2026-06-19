@@ -1,0 +1,14 @@
+# Virtual Environment
+anshu/
+
+
+# Environment Variables
+.env
+
+# Python Cache
+__pycache__/
+*.pyc
+
+
+# VS Code
+.vscode/

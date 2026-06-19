@@ -1,16 +1,18 @@
+print("load start..........")
 from pathlib import Path
+import os 
 from langchain_text_splitters import (
     MarkdownHeaderTextSplitter,
     RecursiveCharacterTextSplitter,
 )
 
 from dotenv import load_dotenv
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 load_dotenv()
 
 DATA_DIR = "data"
 
+print("load khatam..........")
 headers_to_split_on = [
     ("#", "h1"),
     ("##", "h2"),
@@ -54,15 +56,31 @@ print(all_chunks[0].metadata)
 
 print("model loading starts ...................")
 
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+embeddings = GoogleGenerativeAIEmbeddings(
+    model="gemini-embedding-001",
+    google_api_key=os.getenv("GOOGLE_API_KEY")
 )
 
 print("local embedding model loaded ...................")
-vector_store = Chroma.from_documents(
-    documents=all_chunks,
-    embedding=embeddings,
+from langchain_chroma import Chroma
+
+vector_store = Chroma(
     persist_directory="./chroma_db",
+    embedding_function=embeddings
 )
+
+batch_size = 25
+
+for i in range(0, len(all_chunks), batch_size):
+    batch = all_chunks[i:i + batch_size]
+
+    print(f"Adding batch {i} -> {i + len(batch)}")
+
+    vector_store.add_documents(batch)
+
+    import time
+    time.sleep(20)
 
 print("Vector DB Created Successfully yeeeh................. ")
